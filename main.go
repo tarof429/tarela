@@ -10,6 +10,10 @@ import (
 	"time"
 )
 
+const (
+	BACKUP_COMMAND = "mksquashfs"
+)
+
 func removeFiles(files []os.DirEntry, remove int) {
 
 	for _, f := range files[0:remove] {
@@ -27,13 +31,31 @@ func removeFiles(files []os.DirEntry, remove int) {
 func getBackupPathName(s string) string {
 	now := time.Now()
 
-	outputFileName := fmt.Sprintf("backup_%v.tar", now.Format("200602010304"))
+	outputFileName := fmt.Sprintf("backup_%v.sfs", now.Format("200602010304"))
 
 	return filepath.Join(s, outputFileName)
 }
 
+// Generate the command that will be used to create the backup
+// It is hardcoded to use mksquashfs, but the output file can be
+// whatever we like, useful for testing.
+func getBackupCommand(input, outputFilePath, exclude string) (string, []string) {
+
+	args := []string{}
+
+	args = append(args, input)
+	args = append(args, outputFilePath)
+
+	if len(exclude) > 0 {
+		args = append(args, "-ef")
+		args = append(args, exclude)
+	}
+
+	return BACKUP_COMMAND, args
+}
+
 // Backup the directory to a tar file
-func backup(input, outputFilePath string) {
+func backup(input, outputFilePath, exclude string) {
 
 	fmt.Printf("Continue with backup file creation? (y/N): ")
 
@@ -44,7 +66,9 @@ func backup(input, outputFilePath string) {
 	if choice == "y" {
 		fmt.Printf("Creating %v\n", outputFilePath)
 
-		_, err := exec.Command("tar", "cf", outputFilePath, input).Output()
+		cmd, args := getBackupCommand(input, outputFilePath, exclude)
+
+		_, err := exec.Command(cmd, args...).Output()
 
 		if err != nil {
 			log.Fatal(err)
@@ -56,6 +80,7 @@ func main() {
 	input := flag.String("input", "", "Input directory")
 	output := flag.String("output", "", "Output file")
 	keep := flag.Int("keep", 0, "Number of files to keep")
+	exclude := flag.String("exclude", "", "Exclude file")
 
 	flag.Parse()
 
@@ -106,6 +131,6 @@ func main() {
 	}
 
 	// Perform the backup. This is independent of any cleanup we did previously.
-	backup(*input, backupPathName)
+	backup(*input, backupPathName, *exclude)
 
 }
