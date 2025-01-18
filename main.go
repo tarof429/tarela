@@ -8,10 +8,13 @@ import (
 	"os/exec"
 	"path/filepath"
 	"time"
+
+	"github.com/theckman/yacspin"
 )
 
 const (
-	BACKUP_COMMAND = "mksquashfs"
+	BACKUP_COMMAND  = "mksquashfs"
+	SPINNER_GRAPHIC = 35
 )
 
 func removeFiles(files []os.DirEntry, remove int) {
@@ -54,25 +57,14 @@ func getBackupCommand(input, outputFilePath, exclude string) (string, []string) 
 	return BACKUP_COMMAND, args
 }
 
-// Backup the directory to a tar file
+// Backup the directory to a sfs file
 func backup(input, outputFilePath, exclude string) {
+	cmd, args := getBackupCommand(input, outputFilePath, exclude)
 
-	fmt.Printf("Continue with backup file creation? (y/N): ")
+	_, err := exec.Command(cmd, args...).Output()
 
-	var choice string
-
-	fmt.Scanf("%v", &choice)
-
-	if choice == "y" {
-		fmt.Printf("Creating %v\n", outputFilePath)
-
-		cmd, args := getBackupCommand(input, outputFilePath, exclude)
-
-		_, err := exec.Command(cmd, args...).Output()
-
-		if err != nil {
-			log.Fatal(err)
-		}
+	if err != nil {
+		log.Fatal(err)
 	}
 }
 
@@ -120,7 +112,6 @@ func main() {
 
 		switch choice {
 		case "y":
-			fmt.Println("Removing files")
 			removeFiles(files, remove)
 		default:
 			fmt.Println("Aborting")
@@ -130,7 +121,46 @@ func main() {
 		fmt.Println("No files need to be removed")
 	}
 
-	// Perform the backup. This is independent of any cleanup we did previously.
-	backup(*input, backupPathName, *exclude)
+	fmt.Printf("Continue with backup? (y/N): ")
+
+	var choice string
+
+	fmt.Scanf("%v", &choice)
+
+	if choice == "y" {
+
+		// Perform the backup. This is independent of any cleanup we did previously.
+		cfg := yacspin.Config{
+			Frequency:       200 * time.Millisecond,
+			CharSet:         yacspin.CharSets[SPINNER_GRAPHIC],
+			Suffix:          " ",
+			SuffixAutoColon: true,
+			Message:         "Running backup",
+			StopCharacter:   "✓",
+			StopColors:      []string{"fgGreen"},
+		}
+		var spinner *yacspin.Spinner
+
+		spinner, err = yacspin.New(cfg)
+
+		if err != nil {
+			os.Exit(1)
+		}
+
+		err = spinner.Start()
+
+		if err != nil {
+			os.Exit(1)
+		}
+
+		spinner.Message(fmt.Sprintf("Creating %v...", backupPathName))
+		backup(*input, backupPathName, *exclude)
+
+		err = spinner.Stop()
+
+		if err != nil {
+			os.Exit(1)
+		}
+	}
 
 }
