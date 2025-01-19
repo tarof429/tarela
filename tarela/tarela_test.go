@@ -1,4 +1,4 @@
-package main
+package tarela
 
 import (
 	"fmt"
@@ -11,7 +11,7 @@ func TestGetBackupCommand(t *testing.T) {
 	dest := "/home/john/dest/backup.sfs"
 	exclude := "/home/john/dest/exclude.txt"
 
-	cmd, args := getBackupCommand(src, dest, exclude)
+	cmd, args := GetBackupCommand(src, dest, exclude)
 
 	fmt.Println(cmd)
 	if cmd != "mksquashfs" {

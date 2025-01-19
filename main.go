@@ -5,68 +5,13 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"os/exec"
 	"path/filepath"
 	"time"
 
 	"github.com/theckman/yacspin"
+
+	"tarela/tarela"
 )
-
-const (
-	BACKUP_COMMAND  = "mksquashfs"
-	SPINNER_GRAPHIC = 35
-)
-
-func removeFiles(files []os.DirEntry, remove int) {
-
-	for _, f := range files[0:remove] {
-		fmt.Printf("Removing file: %v\n", f.Name())
-		if err := os.Remove(f.Name()); err != nil {
-			fmt.Printf("Unable to remove %v\n", f.Name())
-			log.Fatal(err)
-		}
-	}
-}
-
-// Generate a backup path name. Precision is only down to the minute.
-// In real-life scenarios, this may not be a problem; however, note that
-// if the backup path name already exists, it will be overwritten!
-func getBackupPathName(s string) string {
-	now := time.Now()
-
-	outputFileName := fmt.Sprintf("backup_%v.sfs", now.Format("200602010304"))
-
-	return filepath.Join(s, outputFileName)
-}
-
-// Generate the command that will be used to create the backup
-// It is hardcoded to use mksquashfs, but the output file can be
-// whatever we like, useful for testing.
-func getBackupCommand(input, outputFilePath, exclude string) (string, []string) {
-
-	args := []string{}
-
-	args = append(args, input)
-	args = append(args, outputFilePath)
-
-	if len(exclude) > 0 {
-		args = append(args, "-ef")
-		args = append(args, exclude)
-	}
-
-	return BACKUP_COMMAND, args
-}
-
-// Backup the directory to a sfs file
-func backup(input, outputFilePath, exclude string) {
-	cmd, args := getBackupCommand(input, outputFilePath, exclude)
-
-	_, err := exec.Command(cmd, args...).Output()
-
-	if err != nil {
-		log.Fatal(err)
-	}
-}
 
 func main() {
 	input := flag.String("input", "", "Input directory")
@@ -95,7 +40,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	backupPathName := getBackupPathName(outputPath)
+	backupPathName := tarela.GetBackupPathName(outputPath)
 
 	if err := os.Chdir(outputPath); err != nil {
 		log.Fatal(err)
@@ -112,7 +57,7 @@ func main() {
 
 		switch choice {
 		case "y":
-			removeFiles(files, remove)
+			tarela.RemoveFiles(files, remove)
 		default:
 			fmt.Println("Aborting")
 			os.Exit(0)
@@ -132,7 +77,7 @@ func main() {
 		// Perform the backup. This is independent of any cleanup we did previously.
 		cfg := yacspin.Config{
 			Frequency:       200 * time.Millisecond,
-			CharSet:         yacspin.CharSets[SPINNER_GRAPHIC],
+			CharSet:         yacspin.CharSets[tarela.SPINNER_GRAPHIC],
 			Suffix:          " ",
 			SuffixAutoColon: true,
 			Message:         "Running backup",
@@ -154,7 +99,9 @@ func main() {
 		}
 
 		spinner.Message(fmt.Sprintf("Creating %v...", backupPathName))
-		backup(*input, backupPathName, *exclude)
+
+		// Create the backup
+		tarela.Backup(*input, backupPathName, *exclude)
 
 		err = spinner.Stop()
 
