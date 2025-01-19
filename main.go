@@ -13,11 +13,22 @@ import (
 	"tarela/tarela"
 )
 
+const (
+	INPUT_FLAG             string = "Input directory"
+	OUTPUT_FLAG            string = "Output file"
+	KEEP_FLAG              string = "Number of files to keep"
+	EXCLUDE_FLAG           string = "Exclude file"
+	SPINNER_MESSAGE        string = "Running backup"
+	SPINNER_GRAPHIC        int    = 35
+	SPINNER_STOP_CHARACTER string = "✓"
+	SPINNER_STOP_COLOR     string = "fgGreen"
+)
+
 func main() {
-	input := flag.String("input", "", "Input directory")
-	output := flag.String("output", "", "Output file")
-	keep := flag.Int("keep", 0, "Number of files to keep")
-	exclude := flag.String("exclude", "", "Exclude file")
+	input := flag.String("input", "", INPUT_FLAG)
+	output := flag.String("output", "", OUTPUT_FLAG)
+	keep := flag.Int("keep", 0, KEEP_FLAG)
+	exclude := flag.String("exclude", "", EXCLUDE_FLAG)
 
 	flag.Parse()
 
@@ -77,12 +88,12 @@ func main() {
 		// Perform the backup. This is independent of any cleanup we did previously.
 		cfg := yacspin.Config{
 			Frequency:       200 * time.Millisecond,
-			CharSet:         yacspin.CharSets[tarela.SPINNER_GRAPHIC],
+			CharSet:         yacspin.CharSets[SPINNER_GRAPHIC],
 			Suffix:          " ",
 			SuffixAutoColon: true,
-			Message:         "Running backup",
-			StopCharacter:   "✓",
-			StopColors:      []string{"fgGreen"},
+			Message:         SPINNER_MESSAGE,
+			StopCharacter:   SPINNER_STOP_CHARACTER,
+			StopColors:      []string{SPINNER_STOP_COLOR},
 		}
 		var spinner *yacspin.Spinner
 

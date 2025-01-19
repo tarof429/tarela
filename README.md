@@ -6,11 +6,11 @@ Tarela is a backup tool. It has clealy documented usage information and provides
 
 ## Usage
 ```sh
-$ ./dist/tarela -input /home/taro/src/ -output /home/taro/dest/ -keep 3
-No files need to be removed
+$ ./dist/tarela -input /home/taro/Code/ -output /home/taro/dest/ -keep 3
+1 files in /home/taro/dest will be removed. Continue? (y/N): y
+Removing file: backup_202518010944.sfs
 Continue with backup? (y/N): y
-✓ 
-
+✓          
 ```
 
 ## Building

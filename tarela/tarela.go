@@ -10,8 +10,7 @@ import (
 )
 
 const (
-	BACKUP_COMMAND  = "mksquashfs"
-	SPINNER_GRAPHIC = 35
+	BACKUP_COMMAND = "mksquashfs"
 )
 
 func RemoveFiles(files []os.DirEntry, remove int) {
