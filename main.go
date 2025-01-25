@@ -18,6 +18,7 @@ const (
 	OUTPUT_FLAG            string = "Output file"
 	KEEP_FLAG              string = "Number of files to keep"
 	EXCLUDE_FLAG           string = "Exclude file"
+	COMPRESSION_TYPE       string = "What compression to use"
 	SPINNER_MESSAGE        string = "Running backup"
 	SPINNER_GRAPHIC        int    = 35
 	SPINNER_STOP_CHARACTER string = "✓"
@@ -29,6 +30,7 @@ func main() {
 	output := flag.String("output", "", OUTPUT_FLAG)
 	keep := flag.Int("keep", 0, KEEP_FLAG)
 	exclude := flag.String("exclude", "", EXCLUDE_FLAG)
+	comp := flag.String("comp", "sfs", COMPRESSION_TYPE)
 
 	flag.Parse()
 
@@ -51,7 +53,16 @@ func main() {
 		log.Fatal(err)
 	}
 
-	backupPathName := tarela.GetBackupPathName(outputPath)
+	var backupPathName string
+
+	if *comp == "sfs" {
+		backupPathName = tarela.GetSquashfsBackupPathName(outputPath)
+	} else if *comp == "tar" {
+		backupPathName = tarela.GetTarBackupPathName(outputPath)
+	} else {
+		flag.Usage()
+		os.Exit(1)
+	}
 
 	if err := os.Chdir(outputPath); err != nil {
 		log.Fatal(err)
@@ -112,8 +123,13 @@ func main() {
 		spinner.Message(fmt.Sprintf("Creating %v...", backupPathName))
 
 		// Create the backup
-		tarela.Backup(*input, backupPathName, *exclude)
-
+		if *comp == "sfs" {
+			tarela.BackupSquashfs(*input, backupPathName, *exclude)
+		} else if *comp == "tar" {
+			tarela.BackupTar(*input, backupPathName)
+		} else {
+			os.Exit(1)
+		}
 		err = spinner.Stop()
 
 		if err != nil {

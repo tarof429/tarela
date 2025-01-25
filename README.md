@@ -6,6 +6,19 @@ Tarela is a backup tool. It has clealy documented usage information and provides
 
 ## Usage
 ```sh
+$ ./dist/tarela
+Usage of ./dist/tarela:
+  -comp string
+    	What compression to use (default "sfs")
+  -exclude string
+    	Exclude file
+  -input string
+    	Input directory
+  -keep int
+    	Number of files to keep
+  -output string
+    	Output file
+
 $ ./dist/tarela -input /home/taro/Code/ -output /home/taro/dest/ -keep 3
 1 files in /home/taro/dest will be removed. Continue? (y/N): y
 Removing file: backup_202518010944.sfs
